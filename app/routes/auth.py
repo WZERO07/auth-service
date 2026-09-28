@@ -1,4 +1,4 @@
-from fastapi import APIrouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -6,7 +6,7 @@ from ..models import User
 from ..schemas import Token, UserCreate, UserLogin, UserResponse
 from ..security import create_access_token, hash_password, verify_password
 
-router = APIrouter()
+router = APIRouter()
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register_user(user: UserCreate, db: Session = Depends(get_db)): #noqa: B008
