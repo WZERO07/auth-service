@@ -44,7 +44,7 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)): #noqa: B008
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
     # Create an access token and return the token in the response
-    access_token = create_access_token({"sub": existing_user.id})
+    access_token = create_access_token({"sub": str(existing_user.id)})
     return Token(access_token=access_token, token_type="bearer")
 
 @router.get("/me", response_model=UserResponse)
