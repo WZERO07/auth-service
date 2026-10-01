@@ -113,7 +113,7 @@ Validates credentials and returns a JWT.
 
   ## Roadmap
 - [x] Registration & login with JWT
-- [ ] Protected routes with token validation
+- [x] Protected routes with token validation
 - [ ] Refresh tokens & logout
 - [ ] Role-based authorization
 - [ ] PostgreSQL, migrations, containerization
