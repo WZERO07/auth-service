@@ -18,6 +18,10 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
+def hash(data: str) -> str:
+    hashed_data = hashlib.sha256(data.encode()).hexdigest()
+    return hashed_data
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def hash_password(password: str) -> str:
@@ -35,7 +39,7 @@ def create_access_token(data: dict) -> str:
     
 def create_refresh_token(db: Session, user_id: int) -> str:
     unhashed_token = secrets.token_urlsafe(32)
-    hashed_token = hashlib.sha256(unhashed_token.encode()).hexdigest()
+    hashed_token = hash(unhashed_token)
     expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
 
     db.add(RefreshToken(hashed_token=hashed_token, expires_at=expire, user_id=user_id))
