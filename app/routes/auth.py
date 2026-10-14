@@ -6,6 +6,7 @@ from ..models import User
 from ..schemas import Token, UserCreate, UserLogin, UserResponse
 from ..security import (
     create_access_token,
+    create_refresh_token,
     get_current_user,
     hash_password,
     verify_password,
@@ -43,9 +44,11 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)): #noqa: B008
     if not existing_user or not verify_password(user.password, existing_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     
-    # Create an access token and return the token in the response
+    # Create an access/refresh token and return the token in the response
     access_token = create_access_token({"sub": str(existing_user.id)})
-    return Token(access_token=access_token, token_type="bearer")
+    refresh_token = create_refresh_token(db, existing_user.id)
+    
+    return Token(access_token=access_token, token_type="bearer", refresh_token=refresh_token)
 
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)): #noqa: B008

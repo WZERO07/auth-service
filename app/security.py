@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException
@@ -7,13 +9,14 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import User
+from app.models import RefreshToken, User
 from app.schemas import TokenData
 
 # the secret key will be dinamicaly generated in phase 5, for now we will use a static key
 SECRET_KEY = "737b1e93fa26d379c89d07b7f4bae0c8318bd24e50147cbd63d4a1780aa30838"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -29,6 +32,17 @@ def create_access_token(data: dict) -> str:
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+    
+def create_refresh_token(db: Session, user_id: int) -> str:
+    unhashed_token = secrets.token_urlsafe(32)
+    hashed_token = hashlib.sha256(unhashed_token.encode()).hexdigest()
+    expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+
+    db.add(RefreshToken(hashed_token=hashed_token, expires_at=expire, user_id=user_id))
+    db.commit()
+    
+    return unhashed_token
+
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
