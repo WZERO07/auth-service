@@ -24,4 +24,4 @@ class TokenData(BaseModel):
     user_id: int | None = None
 
 class RefreshRequest(BaseModel):
-    request: str
+    refresh_token: str
