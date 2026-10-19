@@ -25,3 +25,8 @@ class TokenData(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+
+class ListOfUsersResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    users: list[UserResponse]
