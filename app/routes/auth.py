@@ -77,6 +77,19 @@ def refresh_token(refresh_request: RefreshRequest, db: Session = Depends(get_db)
     
     return Token(access_token=access_token, token_type="bearer", refresh_token=new_refresh_token)
 
+@router.post("/logout", status_code=status.HTTP_200_OK)
+def logout_user(refresh_request: RefreshRequest, db: Session = Depends(get_db)): #noqa: B008
+
+    generated_hashed_token = hash_token(refresh_request.refresh_token)
+    stored_token = db.query(RefreshToken).filter(RefreshToken.hashed_token == generated_hashed_token).first()
+
+    #positive confirmation of logout, even if the token is invalid or already revoked to not give any information about the validity of the token
+    if stored_token and not stored_token.revoked:
+        db.query(RefreshToken).filter(RefreshToken.id == stored_token.id).update({"revoked": True})
+        db.commit()
+
+    return {"message": "Logged out successfully"}
+
 
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)): #noqa: B008
