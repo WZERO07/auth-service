@@ -7,6 +7,7 @@ from ..database import get_db
 from ..models import RefreshToken, User
 from ..schemas import RefreshRequest, Token, UserCreate, UserLogin, UserResponse
 from ..security import (
+    check_admin,
     create_access_token,
     create_refresh_token,
     get_current_user,
@@ -49,6 +50,7 @@ def login_user(user: UserLogin, db: Session = Depends(get_db)): #noqa: B008
     #if the user does not exist or the password is incorrect, raise an HTTPException with a 401
     if not existing_user or not verify_password(user.password, existing_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+    
     
     # Create an access/refresh token and return the token in the response
     access_token = create_access_token({"sub": str(existing_user.id)})
@@ -94,3 +96,12 @@ def logout_user(refresh_request: RefreshRequest, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)): #noqa: B008
     return current_user
+
+@router.get("/admin", response_model=UserResponse)
+def list_all_users( db: Session = Depends(get_db), admin: User = Depends(check_admin)): #noqa: B008
+
+    if not admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You do not have permission to perform this action")
+    
+    users = db.query(User).all()
+    return users
