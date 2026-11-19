@@ -27,5 +27,20 @@ def db(tmp_path):
         TestingSessionLocal().close()
         engine.dispose()
 
+@pytest.fixture
+def create_test_user(client):
+    response = client.post("/register", json={"email": "test@example.com", "password": "secret"})
 
+    data = response.json()
 
+    return data  # Return the user data in form of dictionary for use in tests
+
+@pytest.fixture
+def login_test_user(client, create_test_user):
+    response = client.post("/login", json={"email": create_test_user["email"], "password": "secret"})
+
+    access_token = response.json()["access_token"]
+    refresh_token = response.json()["refresh_token"]
+
+    data = [access_token, refresh_token]
+    return data
