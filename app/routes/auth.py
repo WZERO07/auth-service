@@ -86,6 +86,7 @@ def refresh_token(refresh_request: RefreshRequest, db: Session = Depends(get_db)
     
     return Token(access_token=access_token, token_type="bearer", refresh_token=new_refresh_token)
 
+
 @router.post("/logout", status_code=status.HTTP_200_OK)
 def logout_user(refresh_request: RefreshRequest, db: Session = Depends(get_db)): #noqa: B008
 

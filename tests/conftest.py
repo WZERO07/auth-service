@@ -32,8 +32,8 @@ def create_test_user(client):
     response = client.post("/register", json={"email": "test@example.com", "password": "secret"})
 
     data = response.json()
-
     return data  # Return the user data in form of dictionary for use in tests
+
 
 @pytest.fixture
 def login_test_user(client, create_test_user):
@@ -42,5 +42,5 @@ def login_test_user(client, create_test_user):
     access_token = response.json()["access_token"]
     refresh_token = response.json()["refresh_token"]
 
-    data = [access_token, refresh_token]
+    data = {"access_token": access_token, "refresh_token": refresh_token}
     return data
