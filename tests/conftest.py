@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
 from app.main import app
+from app.models import User
 
 
 @pytest.fixture
@@ -38,6 +39,25 @@ def create_test_user(client):
 @pytest.fixture
 def login_test_user(client, create_test_user):
     response = client.post("/login", json={"email": create_test_user["email"], "password": "secret"})
+
+    access_token = response.json()["access_token"]
+    refresh_token = response.json()["refresh_token"]
+
+    data = {"access_token": access_token, "refresh_token": refresh_token}
+    return data
+
+
+@pytest.fixture
+def login_test_admin_user(client,db):
+    # Create a normal user
+    client.post("/register", json={"email": "admin@example.com", "password": "adminsecret"})
+
+    # Update the user's role to admin
+    db.query(User).filter(User.email == "admin@example.com").update({"role": "admin"})
+    db.commit()
+    
+    # Log in as the admin user
+    response = client.post("/login", json={"email": "admin@example.com", "password": "adminsecret"})
 
     access_token = response.json()["access_token"]
     refresh_token = response.json()["refresh_token"]

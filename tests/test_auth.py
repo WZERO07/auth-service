@@ -256,3 +256,14 @@ def test_logout_leaks_no_info_by_comparing_response_for_invalid_and_valid_token(
     # Ensure both responses are the same to not leak information about the validity of the token
     assert response_valid.json() == response_invalid.json() == {"message": "Logged out successfully"}
 
+
+
+
+
+def test_admin_user_can_access_admin_route(client, login_test_admin_user,db):
+
+    assert db.query(User).filter(User.role == "admin").first() is not None  # Ensure the user is admin
+
+    response = client.get("/admin/users", headers={"Authorization": f"Bearer {login_test_admin_user['access_token']}"})
+    assert response.status_code == 200
+

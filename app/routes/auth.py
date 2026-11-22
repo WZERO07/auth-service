@@ -105,6 +105,8 @@ def logout_user(refresh_request: RefreshRequest, db: Session = Depends(get_db)):
 def read_current_user(current_user: User = Depends(get_current_user)): #noqa: B008
     return current_user
 
+
+
 @router.get("/admin/users", response_model=ListOfUsersResponse)
 def list_all_users( db: Session = Depends(get_db), admin: User = Depends(check_admin)): #noqa: B008
     
