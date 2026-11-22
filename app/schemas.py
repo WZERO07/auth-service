@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=4, max_length=32)  # Ensure password is at least 4 characters long
 
 class UserLogin(BaseModel):
     email: EmailStr

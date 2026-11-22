@@ -31,6 +31,10 @@ def test_register_with_no_password(client):
     response = client.post("/register", json={"email": "test@example.com"})
     assert response.status_code == 422
 
+def test_register_password_too_short(client):
+    response = client.post("/register", json={"email": "test@example.com", "password": "a"})
+    assert response.status_code == 422
+
 def test_db_stores_user(db):
     user = User(email="test@example.com", hashed_password="not_a_real_hash")
     db.add(user)
@@ -260,10 +264,51 @@ def test_logout_leaks_no_info_by_comparing_response_for_invalid_and_valid_token(
 
 
 
-def test_admin_user_can_access_admin_route(client, login_test_admin_user,db):
+def test_admin_user_can_access_admin_route_and_retrieve_list_of_users(client, login_test_admin_user,db):
 
     assert db.query(User).filter(User.role == "admin").first() is not None  # Ensure the user is admin
 
     response = client.get("/admin/users", headers={"Authorization": f"Bearer {login_test_admin_user['access_token']}"})
     assert response.status_code == 200
 
+    assert len(response.json()) > 0  # Ensure the response contains user data
+    assert "email" in response.json()["users"][0]  # Ensure the user data contains email
+    assert "id" in response.json()["users"][0]  # Ensure the user data contains id
+
+    assert "password" not in response.json()["users"][0] and "hashed_password" not in response.json()["users"][0]  # Ensure password is not returned
+
+
+def test_non_admin_user_cannot_access_admin_route(client, login_test_user):
+    response = client.get("/admin/users", headers={"Authorization": f"Bearer {login_test_user['access_token']}"})
+    assert response.status_code == 403  # Expect a forbidden error for non-admin users
+
+
+def test_normal_user_cannot_access_admin_route_but_can_access_once_promoted(client, login_test_user, db):
+    response = client.get("/admin/users", headers={"Authorization": f"Bearer {login_test_user['access_token']}"})
+    assert response.status_code == 403  # Expect a forbidden error for non-admin users
+
+    # Promote the user to admin
+    db.query(User).filter(User.email == "test@example.com").update({"role": "admin"})
+    db.commit()
+
+    # Now the user should be able to access the admin route
+    response = client.get("/admin/users", headers={"Authorization": f"Bearer {login_test_user['access_token']}"})
+    assert response.status_code == 200
+
+    #user demotion
+    db.query(User).filter(User.email == "test@example.com").update({"role": "user"})
+    db.commit()
+
+    #retry to access the admin route after demotion
+    response = client.get("/admin/users", headers={"Authorization": f"Bearer {login_test_user['access_token']}"})
+    assert response.status_code == 403  # Expect a forbidden error for non-admin users after demotion
+
+def test_role_admin_cannot_be_registered_directly(client, db):
+    response = client.post("/register", json={"email": "test@example.com", "password": "password", "role": "admin"})
+    assert response.status_code == 201  # Expect a success on register new user but error for trying to register as admin
+
+    assert db.query(User).filter(User.email == "test@example.com").first().role == "user"  # Ensure the role is set to "user" even if "admin" was provided
+
+def test_admin_cannot_call_admin_privileges_whiout_token(client):
+    response = client.get("/admin/users")
+    assert response.status_code == 401  # Expect an unauthorized error since no token is provided
