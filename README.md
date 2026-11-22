@@ -115,5 +115,5 @@ Validates credentials and returns a JWT.
 - [x] Registration & login with JWT
 - [x] Protected routes with token validation
 - [x] Refresh tokens & logout
-- [ ] Role-based authorization
+- [X] Role-based authorization
 - [ ] PostgreSQL, migrations, containerization
