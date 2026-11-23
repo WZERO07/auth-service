@@ -1,9 +1,14 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
+
+os.environ["SECRET_KEY"] = "6cc3177715eaac2eb28a094f044340f04ebef58938b39f7e1c33884cccf87759"  # Set a test secret key before it gets the key from .env file for testing
+
 from app.main import app
 from app.models import User
 

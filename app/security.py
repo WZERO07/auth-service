@@ -1,7 +1,9 @@
 import hashlib
+import os
 import secrets
 from datetime import datetime, timedelta, timezone
 
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -12,8 +14,12 @@ from app.database import get_db
 from app.models import RefreshToken, User
 from app.schemas import TokenData
 
-# the secret key will be dinamicaly generated in phase 5, for now we will use a static key
-SECRET_KEY = "737b1e93fa26d379c89d07b7f4bae0c8318bd24e50147cbd63d4a1780aa30838"
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError(RuntimeError("SECRET_KEY environment variable is not set. Please set it in your .env file or environment variables."))
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
