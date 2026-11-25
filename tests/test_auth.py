@@ -78,6 +78,10 @@ def test_register_user_with_existing_email(client, db):
     response = client.post("/register", json={"email": "test@example.com", "password": "another_secret"})
     assert response.status_code == 409  # Expect a conflict error
 
+def test_register_without_email(client):
+    response = client.post("/register", json={"password": "secret"})
+    assert response.status_code == 422  # Expect a error
+
 
 
     
@@ -312,3 +316,4 @@ def test_role_admin_cannot_be_registered_directly(client, db):
 def test_admin_cannot_call_admin_privileges_whiout_token(client):
     response = client.get("/admin/users")
     assert response.status_code == 401  # Expect an unauthorized error since no token is provided
+
